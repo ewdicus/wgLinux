@@ -4,7 +4,7 @@
 
 #### Variables
 
-version="1.0.0.4"
+version="1.0.0.6"
 installDir="/opt/WireGarden/WireGardenPlugin/$version"
 pluginDir="/usr/lib/mozilla/plugins"
 bit="32"
