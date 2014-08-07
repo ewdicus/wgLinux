@@ -1,6 +1,6 @@
 #!/bin/bash
 # Install script for the WireGarden browser plugin
-# More information at WireGarden.org
+# More information at Manylabs.org
 
 #### Variables
 
@@ -26,19 +26,23 @@ function echoUsage(){
         Install Directory defaults to: /opt/WireGarden
 
     Options:
-        -64\t\tInstall 64 bit Arduino toolchain. Defaults to 32 bit.
+        -64\t\tInstall 64 bit Arduino toolchain. Defaults to 32 bit (which is probably what you want).
         -h, --help\tShow this message and exit.
 "
 }
 
 function install(){
-    # Check for make, cmake, and g++
+    # Check for make, cmake, gcc, and g++
     if ! checkCommand "make"; then
         echo "Error: Make is required. Please install Make and run this script again."
         exit 1
     fi
     if ! checkCommand "cmake"; then
         echo "Error: CMake is required. Please install CMake and run this script again."
+        exit 1
+    fi
+    if ! checkCommand "gcc"; then
+        echo "Error: gcc is required. Please install gcc and run this script again."
         exit 1
     fi
     if ! checkCommand "g++"; then
@@ -83,7 +87,7 @@ function install(){
     # Copy Arduino Tools
     echo "Copying hardware files to installation directory."
     if ! cp -r "arduinoTools/hardware" "$installDir"; then
-        echo "Error: Could not copy Arduino tool files."
+        echo "Error: Could not copy hardware files."
         exit 1
     fi
 
@@ -95,14 +99,14 @@ function install(){
 
     echo "Copying Arduino libraries to installation directory."
     if ! cp -pr "arduinoTools/libraries" "$installDir"; then
-        echo "Error: Could not copy Arduino tool files."
+        echo "Error: Could not copy Arduino libraries."
         exit 1
     fi
 
     # Copy domain whitelist
     echo "Copying domain whitelist installation directory"
     if ! cp "Source/WireGardenPlugin/whitelist.txt" "$installDir"; then
-        echo "Error: Could not copy plugin."
+        echo "Error: Could not copy domain whitelist."
         exit 1
     fi
 
@@ -145,6 +149,13 @@ function install(){
         exit 1
     fi
 
+    # Add user to dialout group. This is usually required to use serial ports.
+    echo "Adding current user to 'dialout' group. IMPORTANT: You'll need to logout and login for this to take effect."
+    username = logname
+    if ! usermod -a -G dialout $username; then
+        echo "Could not add user to 'dialout' group. You may need to run this script with sudo."
+        exit 1
+    fi
     return 0
 }
 
@@ -194,8 +205,14 @@ echo "Installation complete.
 *************
 * IMPORTANT *
 *************
-Attach your Arduino and check the group that owns it.
-Add your user to that group if you're not already a member.
+The last part of this script adds the current user to the 'dialout' group. This
+is usually required to use serial ports and communicate with the Arduino. You
+must logout and login again before this will take effect.
+
+It's also possible that your distribution uses a different group. If you still
+can't communicate with the Arduino after logging out and back in, attach your
+Arduino and check the group that owns it. Then, add your user to that group if
+you're not already a member.
 
 "
 exit 0
